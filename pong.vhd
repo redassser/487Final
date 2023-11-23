@@ -72,20 +72,27 @@ ARCHITECTURE Behavioral OF pong IS
         );
     END COMPONENT;
 BEGIN
-    -- Process to generate clock signals
+    -- BEGIN Process to generate clock signals
     ckp : PROCESS
     BEGIN
         WAIT UNTIL rising_edge(clk_in);
         count <= count + 1; -- counter to generate ADC timing signals
     END PROCESS;
+    -- END   Process to generate clock signals
+
+    -- BEGIN Clock processing
     serial_clk <= NOT count(4); -- 1.5 MHz serial clock for ADC
     ADC_SCLK <= serial_clk;
     sample_clk <= count(9); -- sampling clock is low for 16 SCLKs
     ADC_CS <= sample_clk;
+    -- END   Clock processing
+
     -- Multiplies ADC output (0-4095) by 5/32 to give bat position (0-640)
     --batpos <= ('0' & adout(11 DOWNTO 3)) + adout(11 DOWNTO 5);
     batpos <= ("00" & adout(11 DOWNTO 3)) + adout(11 DOWNTO 4);
     -- 512 + 256 = 768
+
+    -- BEGIN Port mapping
     adc : adc_if
     PORT MAP(-- instantiate ADC serial to parallel interface
         SCK => serial_clk, 
@@ -119,7 +126,8 @@ BEGIN
         pixel_col => S_pixel_col, 
         hsync => VGA_hsync, 
         vsync => S_vsync
-    );
+    ); 
+
     VGA_vsync <= S_vsync; --connect output vsync
         
     clk_wiz_0_inst : clk_wiz_0
@@ -127,4 +135,5 @@ BEGIN
       clk_in1 => clk_in,
       clk_out1 => pxl_clk
     );
+    -- END   Port mapping
 END Behavioral;

@@ -20,24 +20,29 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     CONSTANT bsize : INTEGER := 8; -- ball size in pixels
     CONSTANT bat_w : INTEGER := 20; -- bat width in pixels
     CONSTANT bat_h : INTEGER := 3; -- bat height in pixels
-    -- distance ball moves each frame
-    CONSTANT ball_speed : STD_LOGIC_VECTOR (10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR (6, 11);
+
+    CONSTANT ball_speed : STD_LOGIC_VECTOR (10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR (6, 11); -- distance ball moves each frame
     SIGNAL ball_on : STD_LOGIC; -- indicates whether ball is at current pixel position
     SIGNAL bat_on : STD_LOGIC; -- indicates whether bat at over current pixel position
     SIGNAL game_on : STD_LOGIC := '0'; -- indicates whether ball is in play
+
     -- current ball position - intitialized to center of screen
     SIGNAL ball_x : STD_LOGIC_VECTOR(10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR(400, 11);
     SIGNAL ball_y : STD_LOGIC_VECTOR(10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR(300, 11);
+
     -- bat vertical position
     CONSTANT bat_y : STD_LOGIC_VECTOR(10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR(500, 11);
+
     -- current ball motion - initialized to (+ ball_speed) pixels/frame in both X and Y directions
     SIGNAL ball_x_motion, ball_y_motion : STD_LOGIC_VECTOR(10 DOWNTO 0) := ball_speed;
+    
 BEGIN
-    red <= NOT bat_on; -- color setup for red ball and cyan bat on white background
+    -- color setup for red ball and cyan bat on white background
+    red <= NOT bat_on;
     green <= NOT ball_on;
     blue <= NOT ball_on;
-    -- process to draw round ball
-    -- set ball_on if current pixel address is covered by ball position
+
+    -- BEGIN Drawing round ball
     balldraw : PROCESS (ball_x, ball_y, pixel_row, pixel_col) IS
         VARIABLE vx, vy : STD_LOGIC_VECTOR (10 DOWNTO 0); -- 9 downto 0
     BEGIN
@@ -57,8 +62,9 @@ BEGIN
             ball_on <= '0';
         END IF;
     END PROCESS;
-    -- process to draw bat
-    -- set bat_on if current pixel address is covered by bat position
+    -- END  Drawing round ball
+
+    -- BEGIN Drawing bat
     batdraw : PROCESS (bat_x, pixel_row, pixel_col) IS
         VARIABLE vx, vy : STD_LOGIC_VECTOR (10 DOWNTO 0); -- 9 downto 0
     BEGIN
@@ -71,7 +77,9 @@ BEGIN
             bat_on <= '0';
         END IF;
     END PROCESS;
-    -- process to move ball once every frame (i.e., once every vsync pulse)
+    -- END  Drawing bats
+
+    -- BEGIN Moving ball and detecting collisions
     mball : PROCESS
         VARIABLE temp : STD_LOGIC_VECTOR (11 DOWNTO 0);
     BEGIN
@@ -117,4 +125,5 @@ BEGIN
         ELSE ball_x <= temp(10 DOWNTO 0);
         END IF;
     END PROCESS;
+    -- END  Moving ball and detecting collisions
 END Behavioral;
