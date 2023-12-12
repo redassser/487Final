@@ -47,9 +47,9 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     
 BEGIN
     -- color setup for red ball and cyan bat on white background
-    red <= NOT bat_on;
-    green <= NOT ball_on;
-    blue <= NOT ball_on;
+ --   red <= NOT bat_on;
+   -- green <= NOT ball_on;
+   -- blue <= NOT ball_on;
 
     -- BEGIN Drawing round ball
     balldraw : PROCESS (ball_x, ball_y, pixel_row, pixel_col) IS
@@ -94,25 +94,38 @@ BEGIN
         VARIABLE col : INTEGER := 1;
         VARIABLE brk : INTEGER := 0;
     BEGIN
-        row <= 0 when pixel_row < 25;
-        row <= 1 when pixel_row < 50;
-        row <= 2 when pixel_row < 75;
-        row <= 3 when pixel_row < 100;
-        col <= 0 when pixel_col < 100;
-        col <= 1 when pixel_col < 200;
-        col <= 2 when pixel_col < 300;
-        col <= 3 when pixel_col < 400;
-        col <= 4 when pixel_col < 500;
-        col <= 5 when pixel_col < 600;
-        col <= 6 when pixel_col < 700;
-        col <= 7 when pixel_col < 800;
-        brk <= row * 8 + col;
-        IF (brickon(brk) = "1") THEN
+     --   row := 0 when pixel_row < 25 else
+     --         1 when pixel_row < 50 else
+     --          2 when pixel_row < 75 else
+     --          3 when pixel_row < 100;
+     --   col := 0 when pixel_col < 100;
+     --   col := 1 when pixel_col < 200;
+     --  col := 2 when pixel_col < 300;
+     --   col := 3 when pixel_col < 400;
+     --   col := 4 when pixel_col < 500;
+     --   col := 5 when pixel_col < 600;
+     --   col := 6 when pixel_col < 700;
+     --   col := 7 when pixel_col < 800;
+     if pixel_row < 25 then row := 0; 
+     elsif pixel_row < 50 then row:= 1;
+     elsif pixel_row < 75 then row:= 2;
+     elsif pixel_row < 100 then row:= 3;
+     end if;
+     if pixel_col < 100 then col := 0;
+     elsif pixel_col < 200 then col := 1;
+     elsif pixel_col < 200 then col := 2;
+     elsif pixel_col < 300 then col := 3;
+     elsif pixel_col < 400 then col := 4;
+     elsif pixel_col < 500 then col := 5;
+     elsif pixel_col < 600 then col := 6;
+     end if;
+        brk := row * 8 + col;
+        IF (brickon(brk) = '1') THEN
             red <= brickred(brk);
             blue <= brickblu(brk);
             green <= brickgrn(brk);
-        END IF
-    END PROCESS
+        END IF;
+    END PROCESS;
     -- END   Drawing bricks
 
     -- BEGIN Moving ball and detecting collisions
