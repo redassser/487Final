@@ -33,6 +33,7 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     CONSTANT ball_speed : STD_LOGIC_VECTOR (10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR (6, 11); -- distance ball moves each frame
     SIGNAL ball_on : STD_LOGIC; -- indicates whether ball is at current pixel position
     SIGNAL bat_on : STD_LOGIC; -- indicates whether bat at over current pixel position
+    SIGNAL brick_on : STD_LOGIC;
     SIGNAL game_on : STD_LOGIC := '0'; -- indicates whether ball is in play
 
     -- current ball position - intitialized to center of screen
@@ -44,12 +45,30 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
 
     -- current ball motion - initialized to (+ ball_speed) pixels/frame in both X and Y directions
     SIGNAL ball_x_motion, ball_y_motion : STD_LOGIC_VECTOR(10 DOWNTO 0) := ball_speed;
-    
+    component brick is 
+        PORT (
+            v_sync : IN STD_LOGIC;
+            pixel_row : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
+            pixel_col : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
+            left_b : IN INTEGER;
+            right_b : IN INTEGER;
+            top_b : IN INTEGER;
+            bottom_b : IN INTEGER;
+            ball_x : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
+            ball_y : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
+            ball_x_motion : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
+            ball_y_motion : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
+            serve : IN STD_LOGIC;
+            game_on : IN STD_LOGIC;
+            ball_speed : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
+            brick_on : OUT STD_LOGIC
+        );
+    end component brick;
 BEGIN
     -- color setup for red ball and cyan bat on white background
- --   red <= NOT bat_on;
-   -- green <= NOT ball_on;
-   -- blue <= NOT ball_on;
+    red <= NOT bat_on;
+    green <= NOT ball_on;
+    blue <= NOT brick_on;
 
     -- BEGIN Drawing round ball
     balldraw : PROCESS (ball_x, ball_y, pixel_row, pixel_col) IS
@@ -88,43 +107,32 @@ BEGIN
     END PROCESS;
     -- END  Drawing bats
 
+    brickset: for i in 0 to bricknums generate
+        bricks: brick
+        port map(
+            v_sync => v_sync;
+            pixel_row => pixel_row;
+            pixel_col => pixel_col;
+            ball_x => ball_x;
+            ball_y => ball_y;
+            ball_x_motion => ball_x_motion;
+            ball_y_motion => ball_y_motion;
+            serve => serve;
+            ball_speed => ball_speed;
+            ball_on => ball_on;
+            game_on => game_on;
+            brick_on => brick_on;
+            left_b => 
+        );
+    end generate brickset;
+
     -- BEGIN Drawing bricks
     bricks : PROCESS (pixel_row, pixel_col) IS
         VARIABLE row : INTEGER := 0;
         VARIABLE col : INTEGER := 1;
         VARIABLE brk : INTEGER := 0;
     BEGIN
-     --   row := 0 when pixel_row < 25 else
-     --         1 when pixel_row < 50 else
-     --          2 when pixel_row < 75 else
-     --          3 when pixel_row < 100;
-     --   col := 0 when pixel_col < 100;
-     --   col := 1 when pixel_col < 200;
-     --  col := 2 when pixel_col < 300;
-     --   col := 3 when pixel_col < 400;
-     --   col := 4 when pixel_col < 500;
-     --   col := 5 when pixel_col < 600;
-     --   col := 6 when pixel_col < 700;
-     --   col := 7 when pixel_col < 800;
-     if pixel_row < 25 then row := 0; 
-     elsif pixel_row < 50 then row:= 1;
-     elsif pixel_row < 75 then row:= 2;
-     elsif pixel_row < 100 then row:= 3;
-     end if;
-     if pixel_col < 100 then col := 0;
-     elsif pixel_col < 200 then col := 1;
-     elsif pixel_col < 200 then col := 2;
-     elsif pixel_col < 300 then col := 3;
-     elsif pixel_col < 400 then col := 4;
-     elsif pixel_col < 500 then col := 5;
-     elsif pixel_col < 600 then col := 6;
-     end if;
-        brk := row * 8 + col;
-        IF (brickon(brk) = '1') THEN
-            red <= brickred(brk);
-            blue <= brickblu(brk);
-            green <= brickgrn(brk);
-        END IF;
+     
     END PROCESS;
     -- END   Drawing bricks
 
