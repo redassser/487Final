@@ -10,9 +10,9 @@ ENTITY bat_n_ball IS
         pixel_col : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
         bat_x : IN STD_LOGIC_VECTOR (10 DOWNTO 0); -- current bat x position set by adc
         serve : IN STD_LOGIC; -- down button initiates serve
-        red : OUT STD_LOGIC;
-        green : OUT STD_LOGIC;
-        blue : OUT STD_LOGIC
+        red : OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
+        green : OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
+        blue : OUT STD_LOGIC_VECTOR (3 DOWNTO 0)
     );
 END bat_n_ball;
 
@@ -21,19 +21,19 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     CONSTANT bat_w : INTEGER := 20; -- bat width in pixels
     CONSTANT bat_h : INTEGER := 3; -- bat height in pixels
 
-    CONSTANT brickheight : INTEGER := 100;
     CONSTANT brickcols : INTEGER := 8; -- columns of bricks
     CONSTANT brickrows : INTEGER := 4; -- rows of bricks
     CONSTANT bricknums : INTEGER := 32;
+    CONSTANT brickw : INTEGER := 100;
+    CONSTANT brickh : INTEGER := 40;
     CONSTANT brickred : STD_LOGIC_VECTOR (31 DOWNTO 0) := "11100100101010100011000011011010";
     CONSTANT brickblu : STD_LOGIC_VECTOR (31 DOWNTO 0) := "10010111001001010111000001000101";
     CONSTANT brickgrn : STD_LOGIC_VECTOR (31 DOWNTO 0) := "00100001110100011001100111110100";
-    SIGNAL brickon : STD_LOGIC_VECTOR (31 DOWNTO 0) := "11111111111111111111111111111111";
 
     CONSTANT ball_speed : STD_LOGIC_VECTOR (10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR (6, 11); -- distance ball moves each frame
     SIGNAL ball_on : STD_LOGIC; -- indicates whether ball is at current pixel position
     SIGNAL bat_on : STD_LOGIC; -- indicates whether bat at over current pixel position
-    SIGNAL brick_on : STD_LOGIC;
+    SIGNAL brick_on : STD_LOGIC := '0';
     SIGNAL game_on : STD_LOGIC := '0'; -- indicates whether ball is in play
 
     -- current ball position - intitialized to center of screen
@@ -66,9 +66,9 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     end component brick;
 BEGIN
     -- color setup for red ball and cyan bat on white background
-    red <= NOT bat_on;
-    green <= NOT ball_on;
-    blue <= NOT brick_on;
+    red <= NOT bat_on & "000";
+    green <= NOT ball_on & "000";
+    blue <= NOT brick_on & "000";
 
     -- BEGIN Drawing round ball
     balldraw : PROCESS (ball_x, ball_y, pixel_row, pixel_col) IS
@@ -108,6 +108,7 @@ BEGIN
     -- END  Drawing bats
 
     brickset: for i in 0 to bricknums generate
+    BEGIN
         bricks: brick
         port map(
             v_sync => v_sync;
@@ -122,19 +123,12 @@ BEGIN
             ball_on => ball_on;
             game_on => game_on;
             brick_on => brick_on;
-            left_b => 
+            left_b => brickw * i;
+            right_b => brickw * (i+1);
+            top_b => brickh * i;
+            bottom_b => brickg * (i+1)
         );
     end generate brickset;
-
-    -- BEGIN Drawing bricks
-    bricks : PROCESS (pixel_row, pixel_col) IS
-        VARIABLE row : INTEGER := 0;
-        VARIABLE col : INTEGER := 1;
-        VARIABLE brk : INTEGER := 0;
-    BEGIN
-     
-    END PROCESS;
-    -- END   Drawing bricks
 
     -- BEGIN Moving ball and detecting collisions
     mball : PROCESS

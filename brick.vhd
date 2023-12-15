@@ -43,10 +43,12 @@ ARCHITECTURE Behavioral of brick IS
         WAIT UNTIL rising_edge(v_sync);
         IF serve = '1' AND game_on = '0' THEN -- Start game
             brick_active <= '1';
-        ELSIF () -- Bounce off bottom side
-        ELSIF () -- Bounce off top side
-        ELSIF () -- Bounce off left side
-        ELSIF () -- Bounce off right side
+        ELSIF (ball_x >= left_b AND ball_x <= right_b)
+              (ball_y >= top_b AND ball_y <= (bottom_b + 5)) THEN -- Bounce off bottom side
+            ball_y_motion <= ball_speed;
+        --ELSIF () -- Bounce off top side
+        --ELSIF () -- Bounce off left side
+        --ELSIF () -- Bounce off right side
         END IF;
     END PROCESS;
 END Behavioral;
