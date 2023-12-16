@@ -21,7 +21,7 @@ END brick;
 ARCHITECTURE Behavioral OF brick IS
     SIGNAL pxl_clk : STD_LOGIC := '0'; -- 25 MHz clock to VGA sync module
     -- internal signals to connect modules
-    SIGNAL S_red, S_green, S_blue : STD_LOGIC_VECTOR (3 DOWNTO 0);
+    SIGNAL S_red, S_green, S_blue : STD_LOGIC_VECTOR(3 downto 0); --_VECTOR (3 DOWNTO 0);
     SIGNAL S_vsync : STD_LOGIC;
     SIGNAL S_pixel_row, S_pixel_col : STD_LOGIC_VECTOR (10 DOWNTO 0);
     SIGNAL batpos : STD_LOGIC_VECTOR (10 DOWNTO 0); -- 9 downto 0
@@ -45,9 +45,9 @@ ARCHITECTURE Behavioral OF brick IS
             pixel_col : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
             bat_x : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
             serve : IN STD_LOGIC;
-            red : OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
-            green : OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
-            blue : OUT STD_LOGIC_VECTOR (3 DOWNTO 0)
+            red : OUT STD_LOGIC_VECTOR (3 downto 0);
+            green : OUT STD_LOGIC_VECTOR (3 downto 0);
+            blue : OUT STD_LOGIC_VECTOR (3 downto 0)
         );
     END COMPONENT;
     COMPONENT vga_sync IS
