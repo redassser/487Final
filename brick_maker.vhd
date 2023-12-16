@@ -14,8 +14,7 @@ ENTITY brick_maker IS
         bottom_b : IN INTEGER;
         ball_x : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
         ball_y : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
-        ball_x_motion : OUT STD_LOGIC_VECTOR(10 DOWNTO 0);
-        ball_y_motion : OUT STD_LOGIC_VECTOR(10 DOWNTO 0);
+        ball_bounce_b : OUT STD_LOGIC;
         serve : IN STD_LOGIC;
         game_on : IN STD_LOGIC;
         ball_speed : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
@@ -33,7 +32,7 @@ ARCHITECTURE Behavioral of brick_maker IS
            (pixel_row >= top_b)   AND 
            (pixel_row < bottom_b) AND
            (brick_active = '1')   THEN
-            -- do nothing
+            brick_on <= '0';
         ELSE
             brick_on <= '1';
         END IF;
@@ -46,7 +45,7 @@ ARCHITECTURE Behavioral of brick_maker IS
             brick_active <= '1';
         ELSIF (ball_x >= left_b AND ball_x <= right_b) AND
               (ball_y >= top_b AND ball_y <= (bottom_b + 5)) THEN -- Bounce off bottom side
-            ball_y_motion <= ball_speed;
+            ball_bounce_b <= '1';
         --ELSIF () -- Bounce off top side
         --ELSIF () -- Bounce off left side
         --ELSIF () -- Bounce off right side

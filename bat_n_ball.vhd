@@ -49,6 +49,8 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     CONSTANT brick_color : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000011110000";
     CONSTANT bg_color : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000000000000";
 
+    SIGNAL brick_on_vector : STD_LOGIC_VECTOR (31 DOWNTO 0);
+    SIGNAL bounce_b_vector : STD_LOGIC_VECTOR (31 DOWNTO 0);
 
     component brick_maker is 
         PORT (
@@ -61,12 +63,11 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
             bottom_b : IN INTEGER;
             ball_x : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
             ball_y : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
-            ball_x_motion : OUT STD_LOGIC_VECTOR(10 DOWNTO 0);
-            ball_y_motion : OUT STD_LOGIC_VECTOR(10 DOWNTO 0);
+            ball_bounce_b : OUT STD_LOGIC;
             serve : IN STD_LOGIC;
             game_on : IN STD_LOGIC;
             ball_speed : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
-            brick_on : OUT STD_LOGIC
+            brick_on : OUT STD_LOGIC;
         );
     end component brick_maker;
 BEGIN
@@ -125,7 +126,7 @@ BEGIN
     END PROCESS;
     -- END  Drawing bats
 
-    brickset: for i in 0 to bricknums generate
+    brickset: for i in 0 to 31 generate
     BEGIN
         bricks: brick_maker
         port map(
@@ -134,12 +135,11 @@ BEGIN
             pixel_col => pixel_col;
             ball_x => ball_x;
             ball_y => ball_y;
-            ball_x_motion => ball_x_motion;
-            ball_y_motion => ball_y_motion;
+            ball_bounce_b => bounce_b_vector(i)
             serve => serve;
             ball_speed => ball_speed;
             game_on => game_on;
-            brick_on => brick_on;
+            brick_on => brick_on_vector(i);
             left_b => brickw * i;
             right_b => brickw * (i+1);
             top_b => brickh * i;
@@ -157,7 +157,7 @@ BEGIN
             game_on <= '1';
             ball_y_motion <= (NOT ball_speed) + 1; 
             -- set vspeed to (- ball_speed) pixels
-        ELSIF ball_y <= bsize THEN -- bounce off top wall
+        ELSIF (ball_y <= bsize) OR (bounce_b_vector > 0) THEN -- bounce off top wall
             ball_y_motion <= ball_speed; 
             -- set vspeed to (+ ball_speed) pixels
         ELSIF ball_y + bsize >= 600 THEN -- end game on bottom wall

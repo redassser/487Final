@@ -45,9 +45,9 @@ ARCHITECTURE Behavioral OF brick IS
             pixel_col : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
             bat_x : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
             serve : IN STD_LOGIC;
-            red : OUT STD_LOGIC;
-            green : OUT STD_LOGIC;
-            blue : OUT STD_LOGIC
+            red : OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
+            green : OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
+            blue : OUT STD_LOGIC_VECTOR (3 DOWNTO 0)
         );
     END COMPONENT;
     COMPONENT vga_sync IS
