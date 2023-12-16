@@ -26,9 +26,6 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     CONSTANT bricknums : INTEGER := 32;
     CONSTANT brickw : INTEGER := 100;
     CONSTANT brickh : INTEGER := 40;
-    CONSTANT brickred : STD_LOGIC_VECTOR (31 DOWNTO 0) := "11100100101010100011000011011010";
-    CONSTANT brickblu : STD_LOGIC_VECTOR (31 DOWNTO 0) := "10010111001001010111000001000101";
-    CONSTANT brickgrn : STD_LOGIC_VECTOR (31 DOWNTO 0) := "00100001110100011001100111110100";
 
     CONSTANT ball_speed : STD_LOGIC_VECTOR (10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR (6, 11); -- distance ball moves each frame
     SIGNAL ball_on : STD_LOGIC; -- indicates whether ball is at current pixel position
@@ -45,6 +42,14 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
 
     -- current ball motion - initialized to (+ ball_speed) pixels/frame in both X and Y directions
     SIGNAL ball_x_motion, ball_y_motion : STD_LOGIC_VECTOR(10 DOWNTO 0) := ball_speed;
+
+    SIGNAL colorcode : STD_LOGIC_VECTOR(11 DOWNTO 0);
+    CONSTANT ball_color : STD_LOGIC_VECTOR(11 DOWNTO 0) := "111100000000";
+    CONSTANT bat_color : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000000001111";
+    CONSTANT brick_color : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000011110000";
+    CONSTANT bg_color : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000000000000";
+
+
     component brick is 
         PORT (
             v_sync : IN STD_LOGIC;
@@ -61,14 +66,28 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
             serve : IN STD_LOGIC;
             game_on : IN STD_LOGIC;
             ball_speed : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
-            brick_on : OUT STD_LOGIC
+            brick_on : OUT STD_LOGIC;
+            brick_color : OUT STD_LOGIC_VECTOR(11 DOWNTO 0)
         );
     end component brick;
 BEGIN
     -- color setup for red ball and cyan bat on white background
-    red <= NOT bat_on & "000";
-    green <= NOT ball_on & "000";
-    blue <= NOT brick_on & "000";
+    red <= colorcode(11 DOWNTO 8);
+    green <= colorcode(7 DOWNTO 4);
+    blue <= colorcode(3 DOWNTO 0);
+
+    colors : PROCESS (pixel_row, pixel_col) IS
+    BEGIN
+        IF ball_on = '1' THEN
+            colorcode <= ball_color;
+        ELSIF bat_on = '1' THEN
+            colorcode <= bat_color;
+        ELSIF brick_on = '1' THEN
+            colorcode <= brick_color;
+        ELSE 
+            colorcode <= bg_color;
+        END IF;
+    END PROCESS;
 
     -- BEGIN Drawing round ball
     balldraw : PROCESS (ball_x, ball_y, pixel_row, pixel_col) IS
