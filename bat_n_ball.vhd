@@ -18,7 +18,7 @@ END bat_n_ball;
 
 ARCHITECTURE Behavioral OF bat_n_ball IS
     CONSTANT bsize : INTEGER := 8; -- ball size in pixels
-    CONSTANT bat_w : INTEGER := 20; -- bat width in pixels
+    CONSTANT bat_w : INTEGER := 50; -- bat width in pixels
     CONSTANT bat_h : INTEGER := 3; -- bat height in pixels
 
     CONSTANT brickcols : INTEGER := 8; -- columns of bricks
@@ -32,11 +32,11 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     SIGNAL bat_on : STD_LOGIC; -- indicates whether bat at over current pixel position
     SIGNAL brick_on : STD_LOGIC := '0';
     SIGNAL game_on : STD_LOGIC := '0'; -- indicates whether ball is in play
-
+    SIGNAL brick_on_vector : STD_LOGIC_VECTOR (31 downto 0);
     -- current ball position - intitialized to center of screen
     SIGNAL ball_x : STD_LOGIC_VECTOR(10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR(400, 11);
     SIGNAL ball_y : STD_LOGIC_VECTOR(10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR(300, 11);
-
+    SIGNAL bounce_b_vector : STD_LOGIC_VECTOR(31 downto 0);
     -- bat vertical position
     CONSTANT bat_y : STD_LOGIC_VECTOR(10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR(500, 11);
 
@@ -48,11 +48,11 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     CONSTANT bat_color : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000000001111";
     CONSTANT brick_color : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000011110000";
     CONSTANT bg_color : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000000000000";
+    SIGNAL j : INTEGER;
+    SIGNAL v_sync_sig : STD_LOGIC;
 
-    SIGNAL brick_on_vector : STD_LOGIC_VECTOR (31 DOWNTO 0);
-    SIGNAL bounce_b_vector : STD_LOGIC_VECTOR (31 DOWNTO 0);
 
-    component brick_maker is 
+    component brickmaker is 
         PORT (
             v_sync : IN STD_LOGIC;
             pixel_row : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
@@ -67,23 +67,27 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
             serve : IN STD_LOGIC;
             game_on : IN STD_LOGIC;
             ball_speed : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
-            brick_on : OUT STD_LOGIC;
+            brick_on : OUT STD_LOGIC
         );
-    end component brick_maker;
+    end component brickmaker;
 BEGIN
     -- color setup for red ball and cyan bat on white background
     red <= colorcode(11 DOWNTO 8);
     green <= colorcode(7 DOWNTO 4);
     blue <= colorcode(3 DOWNTO 0);
-
+    v_sync_sig <= v_sync;
+    j <= (conv_integer(pixel_row) / 40 * conv_integer(pixel_col) + conv_integer(pixel_col)/100);
     colors : PROCESS (pixel_row, pixel_col) IS
     BEGIN
         IF ball_on = '1' THEN
             colorcode <= ball_color;
         ELSIF bat_on = '1' THEN
             colorcode <= bat_color;
-        ELSIF brick_on = '1' THEN
-            colorcode <= brick_color;
+        ELSIF brick_on_vector > "0" THEN
+           colorcode(11 DOWNTO 9) <= conv_std_logic_vector(100 * (j mod brickcols), 3);
+           colorcode(8 DOWNTO 6) <= conv_std_logic_vector(100 * (j mod brickcols + 1),3);
+           colorcode(5 DOWNTO 3) <= conv_std_logic_vector(40 * (j / 8), 3);
+           colorcode(2 DOWNTO 0) <= conv_std_logic_vector(40 * (j / 8 +1), 3);
         ELSE 
             colorcode <= bg_color;
         END IF;
@@ -112,11 +116,11 @@ BEGIN
     -- END  Drawing round ball
     
     -- BEGIN Drawing bat
-    batdraw : PROCESS (bat_x, pixel_row, pixel_col) IS
+    batdraw : PROCESS (ball_x, pixel_row, pixel_col) IS
         VARIABLE vx, vy : STD_LOGIC_VECTOR (10 DOWNTO 0); -- 9 downto 0
     BEGIN
-        IF ((pixel_col >= bat_x - bat_w) OR (bat_x <= bat_w)) AND
-         pixel_col <= bat_x + bat_w AND
+        IF ((pixel_col >= ball_x - bat_w) OR (ball_x <= bat_w)) AND
+         pixel_col <= ball_x + bat_w AND
              pixel_row >= bat_y - bat_h AND
              pixel_row <= bat_y + bat_h THEN
                 bat_on <= '1';
@@ -127,23 +131,22 @@ BEGIN
     -- END  Drawing bats
 
     brickset: for i in 0 to 31 generate
-    BEGIN
-        bricks: brick_maker
+        bricks: brickmaker
         port map(
-            v_sync => v_sync;
-            pixel_row => pixel_row;
-            pixel_col => pixel_col;
-            ball_x => ball_x;
-            ball_y => ball_y;
-            ball_bounce_b => bounce_b_vector(i)
-            serve => serve;
-            ball_speed => ball_speed;
-            game_on => game_on;
-            brick_on => brick_on_vector(i);
-            left_b => brickw * i;
-            right_b => brickw * (i+1);
-            top_b => brickh * i;
-            bottom_b => brickg * (i+1)
+            v_sync => v_sync_sig,
+            pixel_row => pixel_row,
+            pixel_col => pixel_col,
+            ball_x => ball_x,
+            ball_y => ball_y,
+            serve => serve,
+            ball_speed => ball_speed,
+            game_on => game_on,
+            ball_bounce_b => bounce_b_vector(i),
+            brick_on => brick_on_vector(i),
+            left_b => brickw * (i mod brickcols),
+            right_b => brickw * (i mod brickcols + 1),
+            top_b => brickh * (i / 8),
+            bottom_b => brickh * (i/8 + 1)
         );
     end generate brickset;
 
@@ -157,7 +160,7 @@ BEGIN
             game_on <= '1';
             ball_y_motion <= (NOT ball_speed) + 1; 
             -- set vspeed to (- ball_speed) pixels
-        ELSIF (ball_y <= bsize) OR (bounce_b_vector > 0) THEN -- bounce off top wall
+        ELSIF ball_y <= bsize or bounce_b_vector > "0" THEN -- bounce off top wall
             ball_y_motion <= ball_speed; 
             -- set vspeed to (+ ball_speed) pixels
         ELSIF ball_y + bsize >= 600 THEN -- end game on bottom wall
@@ -176,8 +179,8 @@ BEGIN
         END IF;
 
         -- allow for bounce off bat
-        IF (ball_x + bsize/2) >= (bat_x - bat_w) AND
-         (ball_x - bsize/2) <= (bat_x + bat_w) AND
+        IF (ball_x + bsize/2) >= (ball_x - bat_w) AND
+         (ball_x - bsize/2) <= (ball_x + bat_w) AND
              (ball_y + bsize/2) >= (bat_y - bat_h) AND
              (ball_y - bsize/2) <= (bat_y + bat_h) THEN
                 ball_y_motion <= (NOT ball_speed) + 1; -- set vspeed to (- ball_speed) pixels
