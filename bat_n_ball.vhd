@@ -61,13 +61,12 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
             bottom_b : IN INTEGER;
             ball_x : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
             ball_y : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
-            ball_x_motion : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
-            ball_y_motion : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
+            ball_x_motion : OUT STD_LOGIC_VECTOR(10 DOWNTO 0);
+            ball_y_motion : OUT STD_LOGIC_VECTOR(10 DOWNTO 0);
             serve : IN STD_LOGIC;
             game_on : IN STD_LOGIC;
             ball_speed : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
-            brick_on : OUT STD_LOGIC;
-            brick_color : OUT STD_LOGIC_VECTOR(11 DOWNTO 0)
+            brick_on : OUT STD_LOGIC
         );
     end component brick_maker;
 BEGIN
@@ -139,7 +138,6 @@ BEGIN
             ball_y_motion => ball_y_motion;
             serve => serve;
             ball_speed => ball_speed;
-            ball_on => ball_on;
             game_on => game_on;
             brick_on => brick_on;
             left_b => brickw * i;
