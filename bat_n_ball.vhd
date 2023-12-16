@@ -50,7 +50,7 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     CONSTANT bg_color : STD_LOGIC_VECTOR(11 DOWNTO 0) := "000000000000";
 
 
-    component brick is 
+    component brick_maker is 
         PORT (
             v_sync : IN STD_LOGIC;
             pixel_row : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
@@ -69,7 +69,7 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
             brick_on : OUT STD_LOGIC;
             brick_color : OUT STD_LOGIC_VECTOR(11 DOWNTO 0)
         );
-    end component brick;
+    end component brick_maker;
 BEGIN
     -- color setup for red ball and cyan bat on white background
     red <= colorcode(11 DOWNTO 8);
@@ -128,7 +128,7 @@ BEGIN
 
     brickset: for i in 0 to bricknums generate
     BEGIN
-        bricks: brick
+        bricks: brick_maker
         port map(
             v_sync => v_sync;
             pixel_row => pixel_row;
