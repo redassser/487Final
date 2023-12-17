@@ -1,6 +1,8 @@
-# Final Project for CPE 487
+# Final Project for CPE 487 : Brick Breaker
 
-Currently: Just the files from Lab 6. Not in any format.
+The objective of this project was to create an analog to the brick breaker game; 
+
+[Cool Icon](https://i.imgur.com/W8SYu7n.png)
 
 ## Relevant files
 
