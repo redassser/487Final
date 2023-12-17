@@ -11,6 +11,8 @@ The objective of this project was to create an analog of the classic brick break
 
 ![potentiometer](https://raw.githubusercontent.com/kevinwlu/dsd/master/Nexys-A7/Lab-6/knob.jpg)
 
+## Structure
+
 - The **brick** module is the top level module
   - The btn0 button starts the serve and activates the bricks.
 
@@ -26,3 +28,25 @@ The objective of this project was to create an analog of the classic brick break
   - The *brickset* generator sets the initial properties and instatiates each of the 32 brick components.
     - The boundaries of each brick are determined at instatiation using the known heights and widths.
     - The bricks are given the position of the ball and current pixel. 
+
+## Process
+
+**STEPS TO GET WORKING IN VIVADO**
+
+**WE ALSO NEED TO ADD IMAGES AND STUFF**
+
+## Modifications
+
+This project was based off of Lab 6.
+
+A) The *brickmaker* component is a completely new addition, and was added at the suggestion of Professor Yett.
+
+B) The *bat_n_ball* component was modified to generate all of the bricks, and the coloring was modified to check for any of the bricks. 
+
+## Summary
+
+The process itself was mostly a syntax and bugfixing challenge (as it usually is), since the concept and design was decided early on. 
+
+Bryan Feighner - 
+El Taylor - 
+Ryan Piedrahita - 
