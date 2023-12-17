@@ -1,13 +1,28 @@
 # Final Project for CPE 487 : Brick Breaker
 
-The objective of this project was to create an analog to the brick breaker game; 
+The objective of this project was to create an analog of the classic brick breaker game.
+- Use the potentiometer to control the bat, which bounces that ball up on collision.
+- Create a set of bricks at the top of the screen that break and bounce the ball down on collision with the ball.
+  - 32 bricks as 4 rows of 8 with a width of 100 pixels and height of 40 pixels. 
+- The game end when the ball hits the bottom wall.
+- The game can be reset at the press of a button.
 
-[Cool Icon](https://i.imgur.com/W8SYu7n.png)
+![Cool Icon](https://i.imgur.com/W8SYu7n.png)
 
-## Relevant files
+![potentiometer](https://raw.githubusercontent.com/kevinwlu/dsd/master/Nexys-A7/Lab-6/knob.jpg)
 
-**bat_n_ball.vhd**: draws the bat and ball on the screen and manages the ball bouncing (by inversing speed) when colliding with bat or walls.
+- The **brick** module is the top level module
+  - The btn0 button starts the serve and activates the bricks.
 
-**adc_if.vhd**: converts serial data from the analog-to-digital converter to a 12 bit format.
-
-**pong.vhd**: top level component
+- The **brickmaker** module is the individual brick component.
+  - The *collision* process checks every frame if the ball is within the bounds of the brick.
+    - If collision occurs, the brick is deactivated and the ball is bounced.
+    - If the ball is being served, all the bricks are reactivated. 
+  - The *brickdraw* process checks if the current pixel is within the bounds of the brick and sets the brick_on of that pixel. 
+ 
+- The **bat_n_ball** module draws all the features on the screen
+  - The *balldraw* process sets the ball_on of each pixel dependant on the ball's position and size.
+  - The *batdraw* process sets the bat_on of each pixel dependant on the bat's position and size.
+  - The *brickset* generator sets the initial properties and instatiates each of the 32 brick components.
+    - The boundaries of each brick are determined at instatiation using the known heights and widths.
+    - The bricks are given the position of the ball and current pixel. 
