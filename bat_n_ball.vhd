@@ -2,6 +2,7 @@ LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.STD_LOGIC_ARITH.ALL;
 USE IEEE.STD_LOGIC_UNSIGNED.ALL;
+use ieee.numeric_std.all; 
 
 ENTITY bat_n_ball IS
     PORT (
@@ -12,7 +13,8 @@ ENTITY bat_n_ball IS
         serve : IN STD_LOGIC; -- down button initiates serve
         red : OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
         green : OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
-        blue : OUT STD_LOGIC_VECTOR (3 DOWNTO 0)
+        blue : OUT STD_LOGIC_VECTOR (3 DOWNTO 0);
+        data : OUT STD_LOGIC_VECTOR ( 7 downto 0)
     );
 END bat_n_ball;
 
@@ -26,7 +28,7 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     CONSTANT bricknums : INTEGER := 32;
     CONSTANT brickw : INTEGER := 100;
     CONSTANT brickh : INTEGER := 40;
-
+    SIGNAL   hit_count : INTEGER:=0;
     CONSTANT ball_speed : STD_LOGIC_VECTOR (10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR (6, 11); -- distance ball moves each frame
     SIGNAL ball_on : STD_LOGIC; -- indicates whether ball is at current pixel position
     SIGNAL bat_on : STD_LOGIC; -- indicates whether bat at over current pixel position
@@ -36,7 +38,10 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     -- current ball position - intitialized to center of screen
     SIGNAL ball_x : STD_LOGIC_VECTOR(10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR(400, 11);
     SIGNAL ball_y : STD_LOGIC_VECTOR(10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR(300, 11);
-    SIGNAL bounce_b_vector : STD_LOGIC_VECTOR(31 downto 0);
+    SIGNAL bounce_bottom_vector : STD_LOGIC_VECTOR(31 downto 0);
+    SIGNAL bounce_top_vector : STD_LOGIC_VECTOR(31 downto 0);
+    SIGNAL bounce_right_vector : STD_LOGIC_VECTOR(31 downto 0);
+    SIGNAL bounce_left_vector : STD_LOGIC_VECTOR(31 downto 0);
     -- bat vertical position
     CONSTANT bat_y : STD_LOGIC_VECTOR(10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR(500, 11);
 
@@ -63,7 +68,10 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
             bottom_b : IN INTEGER;
             ball_x : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
             ball_y : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
-            ball_bounce_b : OUT STD_LOGIC;
+            ball_bounce_bottom : OUT STD_LOGIC;
+            ball_bounce_top : OUT STD_LOGIC;
+            ball_bounce_right : OUT STD_LOGIC;
+            ball_bounce_left : OUT STD_LOGIC;
             serve : IN STD_LOGIC;
             game_on : IN STD_LOGIC;
             ball_speed : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
@@ -84,10 +92,10 @@ BEGIN
         ELSIF bat_on = '1' THEN
             colorcode <= bat_color;
         ELSIF brick_on_vector > "0" THEN
-           colorcode(11 DOWNTO 9) <= conv_std_logic_vector(100 * (j mod brickcols), 3);
-           colorcode(8 DOWNTO 6) <= conv_std_logic_vector(100 * (j mod brickcols + 1),3);
-           colorcode(5 DOWNTO 3) <= conv_std_logic_vector(40 * (j / 8), 3);
-           colorcode(2 DOWNTO 0) <= conv_std_logic_vector(40 * (j / 8 +1), 3);
+           colorcode(11 DOWNTO 9) <=  "111"; --conv_std_logic_vector(100 * (j mod brickcols), 3);
+           colorcode(8 DOWNTO 6) <= "101"; --conv_std_logic_vector(100 * (j mod brickcols + 1),3);
+           colorcode(5 DOWNTO 3) <= "010"; --conv_std_logic_vector(40 * (j / 8), 3);
+           colorcode(2 DOWNTO 0) <= "000"; --conv_std_logic_vector(40 * (j / 8 +1), 3);
         ELSE 
             colorcode <= bg_color;
         END IF;
@@ -119,8 +127,8 @@ BEGIN
     batdraw : PROCESS (ball_x, pixel_row, pixel_col) IS
         VARIABLE vx, vy : STD_LOGIC_VECTOR (10 DOWNTO 0); -- 9 downto 0
     BEGIN
-        IF ((pixel_col >= ball_x - bat_w) OR (ball_x <= bat_w)) AND
-         pixel_col <= ball_x + bat_w AND
+        IF ((pixel_col >= bat_x - bat_w) OR (bat_x <= bat_w)) AND
+         pixel_col <= bat_x + bat_w AND
              pixel_row >= bat_y - bat_h AND
              pixel_row <= bat_y + bat_h THEN
                 bat_on <= '1';
@@ -141,7 +149,10 @@ BEGIN
             serve => serve,
             ball_speed => ball_speed,
             game_on => game_on,
-            ball_bounce_b => bounce_b_vector(i),
+            ball_bounce_bottom => bounce_bottom_vector(i),
+            ball_bounce_top => bounce_top_vector(i),
+            ball_bounce_right => bounce_right_vector(i),
+            ball_bounce_left => bounce_left_vector(i),
             brick_on => brick_on_vector(i),
             left_b => brickw * (i mod brickcols),
             right_b => brickw * (i mod brickcols + 1),
@@ -160,13 +171,33 @@ BEGIN
             game_on <= '1';
             ball_y_motion <= (NOT ball_speed) + 1; 
             -- set vspeed to (- ball_speed) pixels
-        ELSIF ball_y <= bsize or bounce_b_vector > "0" THEN -- bounce off top wall
-            ball_y_motion <= ball_speed; 
+        ELSIF ball_y <= bsize THEN -- bounce off top wall
+            ball_y_motion <= ball_speed;
+         ELSIF bounce_bottom_vector > "0" THEN -- bounce off top wall
+            ball_y_motion <= ball_speed;
+            hit_count <= hit_count + 1; 
+            data <= std_logic_vector(to_unsigned(hit_count,8));
             -- set vspeed to (+ ball_speed) pixels
+        ELSIF bounce_top_vector > "0" THEN -- bounce off top wall
+            ball_y_motion <= (NOT ball_speed) + 1; 
+            hit_count <= hit_count + 1;
+            data <= std_logic_vector(to_unsigned(hit_count,8));
+        ELSIF  bounce_left_vector > "0" THEN -- bounce off right wall
+            ball_x_motion <= (NOT ball_speed) + 1;
+            hit_count <= hit_count + 1;
+            data <= std_logic_vector(to_unsigned(hit_count,8));
+            -- set hspeed to (- ball_speed) pixels
+        ELSIF bounce_right_vector > "0" THEN -- bounce off left wall
+            ball_x_motion <= ball_speed; 
+            hit_count <= hit_count + 1;
+            data <= std_logic_vector(to_unsigned(hit_count,8));
+            -- set hspeed to (+ ball_speed) pixels
         ELSIF ball_y + bsize >= 600 THEN -- end game on bottom wall
             ball_y_motion <= (NOT ball_speed) + 1; 
             -- set vspeed to (- ball_speed) pixels
             game_on <= '0'; -- end game
+            data <= "00000000";
+            hit_count <= 0;
         END IF;
         
         -- allow for bounce off left or right of screen
@@ -177,12 +208,13 @@ BEGIN
             ball_x_motion <= ball_speed; 
             -- set hspeed to (+ ball_speed) pixels
         END IF;
-
+       
         -- allow for bounce off bat
-        IF (ball_x + bsize/2) >= (ball_x - bat_w) AND
-         (ball_x - bsize/2) <= (ball_x + bat_w) AND
+        IF (ball_x + bsize/2) >= (bat_x - bat_w) AND
+         (ball_x - bsize/2) <= (bat_x + bat_w) AND
              (ball_y + bsize/2) >= (bat_y - bat_h) AND
              (ball_y - bsize/2) <= (bat_y + bat_h) THEN
+                
                 ball_y_motion <= (NOT ball_speed) + 1; -- set vspeed to (- ball_speed) pixels
         END IF;
 
