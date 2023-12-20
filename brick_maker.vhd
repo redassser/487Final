@@ -14,7 +14,10 @@ ENTITY brickmaker IS
         bottom_b : IN INTEGER;
         ball_x : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
         ball_y : IN STD_LOGIC_VECTOR(10 DOWNTO 0);
-        ball_bounce_b : OUT STD_LOGIC;
+        ball_bounce_bottom : OUT STD_LOGIC;
+        ball_bounce_top : OUT STD_LOGIC;
+        ball_bounce_right : OUT STD_LOGIC;
+        ball_bounce_left : OUT STD_LOGIC;
         serve : IN STD_LOGIC;
         game_on : IN STD_LOGIC;
         ball_speed : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
@@ -44,18 +47,39 @@ ARCHITECTURE Behavioral of brickmaker IS
         WAIT UNTIL rising_edge(v_sync);
         IF serve = '1' AND game_on = '0' THEN -- Start game
             brick_active <= '1';
-            ball_bounce_b <= '0';
+            ball_bounce_bottom <= '0';
+            ball_bounce_top <= '0';
+            ball_bounce_right <= '0';
+            ball_bounce_left <= '0';
             once <= '0';
-        ELSIF once = '1' then
-            ball_bounce_b <= '0';    
-        ELSIF (ball_x >= left_b AND ball_x <= right_b) AND
-              (ball_y >= top_b AND ball_y <= (bottom_b + 5)) THEN -- Bounce off bottom side
-            ball_bounce_b <= '1';
-            once <= '1';
-            brick_active <= '0';
-        --ELSIF () -- Bounce off top side
-        --ELSIF () -- Bounce off left side
-        --ELSIF () -- Bounce off right side
+            ELSIF once = '1' then
+                   ball_bounce_bottom <= '0';  
+                   ball_bounce_top <= '0';   
+                   ball_bounce_right <= '0';   
+                   ball_bounce_left <= '0';     
+            ELSIF (ball_x >= left_b AND ball_x <= right_b) AND
+                  (ball_y+8 >= top_b-5 AND ball_y+8 <= (bottom_b)) THEN -- Bounce off bottom side
+                   ball_bounce_bottom <= '1';
+                   once <= '1';
+                   brick_active <= '0';
+            
+            ELSIF (ball_x >= left_b AND ball_x <= right_b) AND
+                  (ball_y+8 >= top_b AND ball_y+8 <= (top_b+5)) THEN
+                   ball_bounce_top <= '1';
+                   once <= '1';
+                   brick_active <= '0';
+                   
+             ELSIF (ball_x+8 >= right_b-5 AND ball_x+8 <= right_b) AND
+                  (ball_y >= top_b AND ball_y <= (bottom_b)) THEN
+                   ball_bounce_right <= '1';
+                   once <= '1';
+                   brick_active <= '0';
+                   
+              ELSIF (ball_x+8 >= left_b AND ball_x+8 <= left_b+5) AND
+                  (ball_y >= top_b AND ball_y <= (bottom_b)) THEN
+                   ball_bounce_left <= '1';
+                   once <= '1';
+                   brick_active <= '0';
         END IF;
     END PROCESS;
 END Behavioral;
