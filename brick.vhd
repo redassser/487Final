@@ -15,10 +15,13 @@ ENTITY brick IS
         ADC_SCLK : OUT STD_LOGIC;
         ADC_SDATA1 : IN STD_LOGIC;
         ADC_SDATA2 : IN STD_LOGIC;
-        btn0 : IN STD_LOGIC); -- button to initiate serve
+        btn0 : IN STD_LOGIC; -- button to initiate serve
+        SEG7_anode : OUT STD_LOGIC_VECTOR (7 DOWNTO 0); -- anodes of eight 7-seg displays
+   	    SEG7_seg : OUT STD_LOGIC_VECTOR (6 DOWNTO 0)); -- common segments of 7-seg displays
 END brick;
 
 ARCHITECTURE Behavioral OF brick IS
+    signal both : std_logic_vector (7 downto 0);
     SIGNAL pxl_clk : STD_LOGIC := '0'; -- 25 MHz clock to VGA sync module
     -- internal signals to connect modules
     SIGNAL S_red, S_green, S_blue : STD_LOGIC_VECTOR(3 downto 0); --_VECTOR (3 DOWNTO 0);
@@ -38,6 +41,16 @@ ARCHITECTURE Behavioral OF brick IS
             data_2 : OUT STD_LOGIC_VECTOR(11 DOWNTO 0)
         );
     END COMPONENT;
+     COMPONENT leddec16 is
+        port (
+            data : in std_logic_vector (7 downto 0);
+            dig : in STD_logic_vector (2 downto 0);
+            anode : out STD_LOGIC_VECTOR (7 DOWNTO 0);
+            seg : OUT std_logic_vector (6 downto 0));
+    END COMPONENT;
+    SIGNAL led_mpx : STD_LOGIC_VECTOR (2 DOWNTO 0); -- 7-seg multiplexing clock
+    SIGNAL display: std_logic_vector (7 DOWNTO 0);
+
     COMPONENT bat_n_ball IS
         PORT (
             v_sync : IN STD_LOGIC;
@@ -47,7 +60,8 @@ ARCHITECTURE Behavioral OF brick IS
             serve : IN STD_LOGIC;
             red : OUT STD_LOGIC_VECTOR (3 downto 0);
             green : OUT STD_LOGIC_VECTOR (3 downto 0);
-            blue : OUT STD_LOGIC_VECTOR (3 downto 0)
+            blue : OUT STD_LOGIC_VECTOR (3 downto 0);
+            data : OUT STD_LOGIC_VECTOR ( 7 downto 0)
         );
     END COMPONENT;
     COMPONENT vga_sync IS
@@ -72,6 +86,7 @@ ARCHITECTURE Behavioral OF brick IS
         );
     END COMPONENT;
 BEGIN
+led_mpx <= count(9 DOWNTO 7);
     -- BEGIN Process to generate clock signals
     ckp : PROCESS
     BEGIN
@@ -111,8 +126,14 @@ BEGIN
         serve => btn0, 
         red => S_red, 
         green => S_green, 
-        blue => S_blue
+        blue => S_blue,
+        data => both
     );
+    ledd : leddec16
+   	 PORT MAP(
+   		 dig => led_mpx, data => both,
+   		 anode => SEG7_anode, seg => SEG7_seg
+   	 );
     vga_driver : vga_sync
     PORT MAP(--instantiate vga_sync components
         pixel_clk => pxl_clk, 
