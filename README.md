@@ -31,9 +31,30 @@ The objective of this project was to create an analog of the classic brick break
 
 ## Process
 
-**STEPS TO GET WORKING IN VIVADO**
+###1. Create a new RTL project *brick* in Vivado Quick Start
+ - Create eight new source files of file type VHDL called adc_if, bat_n_ball, brick, brickmaker, clk_wiz_0, clk_wiz_0_clk_wiz, leddec16, and vga_sync.
 
-**WE ALSO NEED TO ADD IMAGES AND STUFF**
+ - Create a new constraint file of file type XDC called brick
+
+ - Choose Nexys A7-100T board for the project
+
+ - Click 'Finish'
+
+ - Click design sources and copy the VHDL code from adc_if.vhd, bat_n_ball.vhd, brick.vhd, brickmaker.vhd, clk_wiz_0.vhd, clk_wiz_0_clk_wiz.vhd, leddec16.vhd, and vga_sync.vhd.
+
+ - Click constraints and copy the code from hexcalc.xdc
+
+###2. Run synthesis
+
+###3. Run implementation and open implemented design
+
+###4. Generate bitstream, open hardware manager, and program device
+
+ - Click 'Generate Bitstream'
+
+ - Click 'Open Hardware Manager' and click 'Open Target' then 'Auto Connect'
+
+ - Click 'Program Device' then xc7a100t_0 to download hexcalc.bit to the Nexys A7-100T board
 
 ## Modifications
 
@@ -42,6 +63,8 @@ This project was based off of Lab 6.
 A) The *brickmaker* component is a completely new addition, and was added at the suggestion of Professor Yett.
 
 B) The *bat_n_ball* component was modified to generate all of the bricks, and the coloring was modified to check for any of the bricks. 
+
+C) The *leddec16* component is a modified version of the leddec.vhd file included in several labs, modified to display the score of the game in binary.
 
 ## Summary
 
