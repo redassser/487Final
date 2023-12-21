@@ -56,7 +56,7 @@ The objective of this project was to create an analog of the classic brick break
 
  - Click 'Program Device' then xc7a100t_0 to download hexcalc.bit to the Nexys A7-100T board
 
-### 5. After successfully programming device, the screen should match the image below:
+### 5. After successfully programming device, the screen should closesly resemble the image below:
 ![Brick Breaker Running Successfully](brickbreaker_Layout.jpg)
 
 ## Modifications
@@ -68,6 +68,8 @@ A) The *brickmaker* component is a completely new addition, and was added at the
 B) The *bat_n_ball* component was modified to generate all of the bricks, and the coloring was modified to check for any of the bricks. 
 
 C) The *leddec16* component is a modified version of the leddec.vhd file included in several labs, modified to display the score of the game in binary.
+
+D) The *brick* component is a renamed and modified version of pong.vhd from Lab 6. 
 
 ## Summary
 
