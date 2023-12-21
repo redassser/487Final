@@ -31,7 +31,7 @@ The objective of this project was to create an analog of the classic brick break
 
 ## Process
 
-###1. Create a new RTL project *brick* in Vivado Quick Start
+### 1. Create a new RTL project *brick* in Vivado Quick Start
  - Create eight new source files of file type VHDL called adc_if, bat_n_ball, brick, brickmaker, clk_wiz_0, clk_wiz_0_clk_wiz, leddec16, and vga_sync.
 
  - Create a new constraint file of file type XDC called brick
@@ -44,11 +44,11 @@ The objective of this project was to create an analog of the classic brick break
 
  - Click constraints and copy the code from hexcalc.xdc
 
-###2. Run synthesis
+### 2. Run synthesis
 
-###3. Run implementation and open implemented design
+### 3. Run implementation and open implemented design
 
-###4. Generate bitstream, open hardware manager, and program device
+### 4. Generate bitstream, open hardware manager, and program device
 
  - Click 'Generate Bitstream'
 
