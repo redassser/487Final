@@ -56,6 +56,9 @@ The objective of this project was to create an analog of the classic brick break
 
  - Click 'Program Device' then xc7a100t_0 to download hexcalc.bit to the Nexys A7-100T board
 
+### 5. After successfully programming device, the screen should match the image below:
+![Brick Breaker Running Successfully](brickbreaker_Layout.jpg)
+
 ## Modifications
 
 This project was based off of Lab 6.
