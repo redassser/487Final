@@ -29,7 +29,8 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     CONSTANT brickw : INTEGER := 100;
     CONSTANT brickh : INTEGER := 40;
     SIGNAL   hit_count : INTEGER:=0;
-    CONSTANT ball_speed : STD_LOGIC_VECTOR (10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR (6, 11); -- distance ball moves each frame
+    CONSTANT ball_speed : STD_LOGIC_VECTOR (10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR (6, 11);
+    CONSTANT ball_speedy : STD_LOGIC_VECTOR (10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR (7, 11); -- distance ball moves each frame
     SIGNAL ball_on : STD_LOGIC; -- indicates whether ball is at current pixel position
     SIGNAL bat_on : STD_LOGIC; -- indicates whether bat at over current pixel position
     SIGNAL brick_on : STD_LOGIC := '0';
@@ -42,6 +43,7 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
     SIGNAL bounce_top_vector : STD_LOGIC_VECTOR(31 downto 0);
     SIGNAL bounce_right_vector : STD_LOGIC_VECTOR(31 downto 0);
     SIGNAL bounce_left_vector : STD_LOGIC_VECTOR(31 downto 0);
+    SIGNAL ref_batx : STD_LOGIC_VECTOR(10 downto 0);
     -- bat vertical position
     CONSTANT bat_y : STD_LOGIC_VECTOR(10 DOWNTO 0) := CONV_STD_LOGIC_VECTOR(500, 11);
 
@@ -75,7 +77,9 @@ ARCHITECTURE Behavioral OF bat_n_ball IS
             serve : IN STD_LOGIC;
             game_on : IN STD_LOGIC;
             ball_speed : IN STD_LOGIC_VECTOR (10 DOWNTO 0);
-            brick_on : OUT STD_LOGIC
+            brick_on : OUT STD_LOGIC;
+            ball_x_motion_test : IN STD_LOGIC_VECTOR(10 downto 0);
+            ball_y_motion_test : IN STD_LOGIC_VECTOR(10 downto 0)
         );
     end component brickmaker;
 BEGIN
@@ -83,8 +87,9 @@ BEGIN
     red <= colorcode(11 DOWNTO 8);
     green <= colorcode(7 DOWNTO 4);
     blue <= colorcode(3 DOWNTO 0);
+
     v_sync_sig <= v_sync;
-    j <= (conv_integer(pixel_row) / 40 * conv_integer(pixel_col) + conv_integer(pixel_col)/100);
+    j <= (conv_integer(pixel_row) / 40 * conv_integer(brickcols) + conv_integer(pixel_col)/100);
     colors : PROCESS (pixel_row, pixel_col) IS
     BEGIN
         IF ball_on = '1' THEN
@@ -92,10 +97,46 @@ BEGIN
         ELSIF bat_on = '1' THEN
             colorcode <= bat_color;
         ELSIF brick_on_vector > "0" THEN
-           colorcode(11 DOWNTO 9) <=  "111"; --conv_std_logic_vector(100 * (j mod brickcols), 3);
-           colorcode(8 DOWNTO 6) <= "101"; --conv_std_logic_vector(100 * (j mod brickcols + 1),3);
-           colorcode(5 DOWNTO 3) <= "010"; --conv_std_logic_vector(40 * (j / 8), 3);
-           colorcode(2 DOWNTO 0) <= "000"; --conv_std_logic_vector(40 * (j / 8 +1), 3);
+           CASE j MOD 9 IS
+            WHEN 0 =>
+                colorcode(11 DOWNTO 8) <= "1111"; 
+                colorcode(7 DOWNTO 4) <= "0000"; 
+                colorcode(3 DOWNTO 0) <= "0000"; 
+            WHEN 1 =>
+                colorcode(11 DOWNTO 8) <= "0000"; 
+                colorcode(7 DOWNTO 4) <= "1111"; 
+                colorcode(3 DOWNTO 0) <= "0000"; 
+            WHEN 2 =>
+                colorcode(11 DOWNTO 8) <= "0000"; 
+                colorcode(7 DOWNTO 4) <= "0000"; 
+                colorcode(3 DOWNTO 0) <= "1111";
+            WHEN 3 =>
+                colorcode(11 DOWNTO 8) <= "1111"; 
+                colorcode(7 DOWNTO 4) <= "1111"; 
+                colorcode(3 DOWNTO 0) <= "0000"; 
+            WHEN 4 =>
+                colorcode(11 DOWNTO 8) <= "0000";
+                colorcode(7 DOWNTO 4) <= "1111"; 
+                colorcode(3 DOWNTO 0) <= "1111"; 
+            WHEN 5 =>
+                colorcode(11 DOWNTO 8) <= "1111"; 
+                colorcode(7 DOWNTO 4) <= "0000"; 
+                colorcode(3 DOWNTO 0) <= "1111"; 
+            WHEN 6 =>
+                colorcode(11 DOWNTO 8) <= "1100"; 
+                colorcode(7 DOWNTO 4) <= "0011"; 
+                colorcode(3 DOWNTO 0) <= "1100"; 
+            WHEN 7 =>
+                colorcode(11 DOWNTO 8) <= "0011"; 
+                colorcode(7 DOWNTO 4) <= "1100"; 
+                colorcode(3 DOWNTO 0) <= "0011"; 
+            WHEN 8 =>
+                colorcode(11 DOWNTO 8) <= "1010"; 
+                colorcode(7 DOWNTO 4) <= "0101"; 
+                colorcode(3 DOWNTO 0) <= "1010";
+            WHEN OTHERS => 
+                colorcode <= bg_color;
+        END CASE;
         ELSE 
             colorcode <= bg_color;
         END IF;
@@ -157,7 +198,9 @@ BEGIN
             left_b => brickw * (i mod brickcols),
             right_b => brickw * (i mod brickcols + 1),
             top_b => brickh * (i / 8),
-            bottom_b => brickh * (i/8 + 1)
+            bottom_b => brickh * (i/8 + 1),
+            ball_x_motion_test => ball_x_motion,
+            ball_y_motion_test => ball_y_motion
         );
     end generate brickset;
 
@@ -169,31 +212,24 @@ BEGIN
 
         IF serve = '1' AND game_on = '0' THEN -- test for new serve
             game_on <= '1';
-            ball_y_motion <= (NOT ball_speed) + 1; 
+            ball_y_motion <= (NOT ball_speedy) + 1; 
             -- set vspeed to (- ball_speed) pixels
         ELSIF ball_y <= bsize THEN -- bounce off top wall
-            ball_y_motion <= ball_speed;
+            ball_y_motion <= ball_speedy;
          ELSIF bounce_bottom_vector > "0" THEN -- bounce off top wall
-            ball_y_motion <= ball_speed;
+            ball_y_motion <= ball_speedy;
             hit_count <= hit_count + 1; 
             data <= std_logic_vector(to_unsigned(hit_count,8));
             -- set vspeed to (+ ball_speed) pixels
         ELSIF bounce_top_vector > "0" THEN -- bounce off top wall
-            ball_y_motion <= (NOT ball_speed) + 1; 
+            ball_y_motion <= (NOT ball_speedy) + 1; 
             hit_count <= hit_count + 1;
             data <= std_logic_vector(to_unsigned(hit_count,8));
-        ELSIF  bounce_left_vector > "0" THEN -- bounce off right wall
-            ball_x_motion <= (NOT ball_speed) + 1;
-            hit_count <= hit_count + 1;
-            data <= std_logic_vector(to_unsigned(hit_count,8));
-            -- set hspeed to (- ball_speed) pixels
-        ELSIF bounce_right_vector > "0" THEN -- bounce off left wall
-            ball_x_motion <= ball_speed; 
-            hit_count <= hit_count + 1;
+        
             data <= std_logic_vector(to_unsigned(hit_count,8));
             -- set hspeed to (+ ball_speed) pixels
         ELSIF ball_y + bsize >= 600 THEN -- end game on bottom wall
-            ball_y_motion <= (NOT ball_speed) + 1; 
+            ball_y_motion <= (NOT ball_speedy) + 1; 
             -- set vspeed to (- ball_speed) pixels
             game_on <= '0'; -- end game
             data <= "00000000";
@@ -207,6 +243,14 @@ BEGIN
         ELSIF ball_x <= bsize THEN -- bounce off left wall
             ball_x_motion <= ball_speed; 
             -- set hspeed to (+ ball_speed) pixels
+        ELSIF  bounce_left_vector > "0" THEN -- bounce off right wall
+            ball_x_motion <= (NOT ball_speed) + 1;
+            hit_count <= hit_count + 1;
+            data <= std_logic_vector(to_unsigned(hit_count,8));
+            -- set hspeed to (- ball_speed) pixels
+        ELSIF bounce_right_vector > "0" THEN -- bounce off left wall
+            ball_x_motion <= ball_speed; 
+            hit_count <= hit_count + 1;
         END IF;
        
         -- allow for bounce off bat
@@ -217,7 +261,7 @@ BEGIN
                 
                 ball_y_motion <= (NOT ball_speed) + 1; -- set vspeed to (- ball_speed) pixels
         END IF;
-
+        
         -- compute next ball vertical position
         -- variable temp adds one more bit to calculation to fix unsigned underflow problems
         -- when ball_y is close to zero and ball_y_motion is negative
